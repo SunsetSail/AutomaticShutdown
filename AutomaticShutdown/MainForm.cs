@@ -20,13 +20,14 @@ public partial class MainForm : Form
         _config = AppConfig.Load();
         _startTime = StartTimeRecorder.RecordOrGetStartTime(_config.LogPath);
 
-        UpdateAutoStartMenu();
+        UpdateAutoStartButton();
         CreateDelayButtons();
         UpdateTrayTooltip("准备中...");
         mainTimer.Start();
 
-        WindowState = FormWindowState.Minimized;
-        ShowInTaskbar = _config.EnableTrayCountdown;
+        Opacity = 0;
+        WindowState = FormWindowState.Normal;
+        Opacity = 1;
     }
 
     private void CreateDelayButtons()
@@ -38,13 +39,28 @@ public partial class MainForm : Form
         {
             var btn = new Button
             {
-                Text = $"延后{minutes}分钟",
-                Size = new Size(100, 35),
+                Text = $"延后 {minutes} 分钟",
+                Size = new Size(100, 40),
                 FlatStyle = FlatStyle.Flat,
-                Font = new Font("Microsoft YaHei UI", 9F),
+                Font = new Font("Microsoft YaHei UI", 9.5F),
+                ForeColor = Color.FromArgb(200, 200, 200),
+                BackColor = Color.FromArgb(50, 50, 50),
+                Cursor = Cursors.Hand,
                 Tag = minutes
             };
+            btn.FlatAppearance.BorderColor = Color.FromArgb(80, 80, 80);
+            btn.FlatAppearance.BorderSize = 1;
             btn.Click += DelayButton_Click;
+            btn.MouseEnter += (_, _) =>
+            {
+                btn.BackColor = Color.FromArgb(70, 70, 70);
+                btn.FlatAppearance.BorderColor = Color.FromArgb(0, 200, 150);
+            };
+            btn.MouseLeave += (_, _) =>
+            {
+                btn.BackColor = Color.FromArgb(50, 50, 50);
+                btn.FlatAppearance.BorderColor = Color.FromArgb(80, 80, 80);
+            };
             _delayButtons.Add(btn);
             flowDelayButtons.Controls.Add(btn);
         }
@@ -67,8 +83,9 @@ public partial class MainForm : Form
             else
             {
                 var remaining = workDuration - elapsed;
-                lblCountdown.Text = $"距离下班还有 {remaining:hh\\:mm\\:ss}";
-                lblCountdown.ForeColor = SystemColors.ControlText;
+                lblCountdown.Text = remaining.ToString(@"hh\:mm\:ss");
+                lblCountdown.ForeColor = Color.FromArgb(0, 200, 150);
+                lblStatus.Text = "距离下班还有";
                 UpdateTrayTooltip($"下班倒计时：{remaining:hh\\:mm\\:ss}");
                 Text = _config.EnableTrayCountdown ? $"下班倒计时 {remaining:hh\\:mm\\:ss}" : "下班倒计时";
             }
@@ -82,8 +99,9 @@ public partial class MainForm : Form
                 return;
             }
 
-            lblCountdown.Text = $"电脑将在 {remaining:mm\\:ss} 后自动关机";
-            lblCountdown.ForeColor = Color.Red;
+            lblCountdown.Text = remaining.ToString(@"mm\:ss");
+            lblCountdown.ForeColor = Color.FromArgb(255, 80, 80);
+            lblStatus.Text = "电脑即将自动关机";
             UpdateTrayTooltip($"⚠ 关机倒计时：{remaining:mm\\:ss}");
             Text = _config.EnableTrayCountdown
                 ? $"⚠ 关机倒计时 {remaining:mm\\:ss}"
@@ -100,47 +118,65 @@ public partial class MainForm : Form
         var dialog = new Form
         {
             Text = "下班提醒",
-            Size = new Size(420, 220),
+            Size = new Size(450, 250),
             StartPosition = FormStartPosition.CenterScreen,
             FormBorderStyle = FormBorderStyle.FixedDialog,
             MaximizeBox = false,
             MinimizeBox = false,
             ShowInTaskbar = true,
-            TopMost = true
+            TopMost = true,
+            BackColor = Color.FromArgb(35, 35, 35)
         };
 
         var lblMessage = new Label
         {
-            Text = $"您已工作满 {hours} 小时 {workMin} 分钟，电脑将在 {_config.ShutdownCountdownMinutes} 分钟后自动关机。",
+            Text = $"您已工作满 {hours} 小时 {workMin} 分钟\n电脑将在 {_config.ShutdownCountdownMinutes} 分钟后自动关机",
             Dock = DockStyle.Top,
-            Height = 80,
+            Height = 90,
             TextAlign = ContentAlignment.MiddleCenter,
-            Font = new Font("Microsoft YaHei UI", 10F)
+            Font = new Font("Microsoft YaHei UI", 11F),
+            ForeColor = Color.FromArgb(220, 220, 220),
+            BackColor = Color.FromArgb(35, 35, 35)
         };
 
         var flowPanel = new FlowLayoutPanel
         {
             Dock = DockStyle.Bottom,
-            Height = 60,
+            Height = 70,
             FlowDirection = FlowDirection.LeftToRight,
-            Padding = new Padding(10, 10, 10, 10),
-            AutoSize = false
+            Padding = new Padding(15, 15, 15, 15),
+            AutoSize = false,
+            BackColor = Color.FromArgb(30, 30, 30)
         };
 
         foreach (var minutes in _config.DelayOptions)
         {
             var btn = new Button
             {
-                Text = $"延后{minutes}分钟",
-                Size = new Size(90, 35),
+                Text = $"延后 {minutes} 分钟",
+                Size = new Size(95, 38),
                 FlatStyle = FlatStyle.Flat,
-                Font = new Font("Microsoft YaHei UI", 9F),
+                Font = new Font("Microsoft YaHei UI", 9.5F),
+                ForeColor = Color.FromArgb(200, 200, 200),
+                BackColor = Color.FromArgb(50, 50, 50),
+                Cursor = Cursors.Hand,
                 Tag = minutes
             };
+            btn.FlatAppearance.BorderColor = Color.FromArgb(80, 80, 80);
             btn.Click += (_, _) =>
             {
                 ApplyDelay((int)btn.Tag!);
                 dialog.Close();
+            };
+            btn.MouseEnter += (_, _) =>
+            {
+                btn.BackColor = Color.FromArgb(70, 70, 70);
+                btn.FlatAppearance.BorderColor = Color.FromArgb(0, 200, 150);
+            };
+            btn.MouseLeave += (_, _) =>
+            {
+                btn.BackColor = Color.FromArgb(50, 50, 50);
+                btn.FlatAppearance.BorderColor = Color.FromArgb(80, 80, 80);
             };
             flowPanel.Controls.Add(btn);
         }
@@ -206,9 +242,29 @@ public partial class MainForm : Form
         trayIcon.Text = text;
     }
 
-    private void UpdateAutoStartMenu()
+    private void UpdateAutoStartButton()
     {
-        trayMenuAutoStart.Checked = AutoStartManager.IsAutoStartEnabled();
+        var enabled = AutoStartManager.IsAutoStartEnabled();
+        btnAutoStart.Text = enabled ? "开机自启：开" : "开机自启：关";
+        btnAutoStart.ForeColor = enabled ? Color.FromArgb(0, 200, 150) : Color.FromArgb(160, 160, 160);
+        trayMenuAutoStart.Checked = enabled;
+    }
+
+    private void BtnMenu_Click(object? sender, EventArgs e)
+    {
+        using var settingsForm = new SettingsForm(_config);
+        if (settingsForm.ShowDialog(this) == DialogResult.OK)
+        {
+            _config = AppConfig.Load();
+            CreateDelayButtons();
+        }
+    }
+
+    private void BtnAutoStart_Click(object? sender, EventArgs e)
+    {
+        var current = AutoStartManager.IsAutoStartEnabled();
+        AutoStartManager.SetAutoStart(!current);
+        UpdateAutoStartButton();
     }
 
     private void TrayIcon_DoubleClick(object? sender, EventArgs e)
@@ -221,21 +277,11 @@ public partial class MainForm : Form
         ShowMainForm();
     }
 
-    private void TrayMenuSettings_Click(object? sender, EventArgs e)
-    {
-        using var settingsForm = new SettingsForm(_config);
-        if (settingsForm.ShowDialog(this) == DialogResult.OK)
-        {
-            _config = AppConfig.Load();
-            CreateDelayButtons();
-        }
-    }
-
     private void TrayMenuAutoStart_Click(object? sender, EventArgs e)
     {
         var current = AutoStartManager.IsAutoStartEnabled();
         AutoStartManager.SetAutoStart(!current);
-        UpdateAutoStartMenu();
+        UpdateAutoStartButton();
     }
 
     private void TrayMenuExit_Click(object? sender, EventArgs e)
