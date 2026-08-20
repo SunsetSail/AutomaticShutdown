@@ -18,6 +18,7 @@ public partial class SettingsForm : Form
         numShutdownCountdown.Value = _config.ShutdownCountdownMinutes;
         txtDelayOptions.Text = string.Join(",", _config.DelayOptions);
         txtDelayOptionsPage.Text = string.Join(",", _config.DelayOptions);
+        txtLogPath.Text = _config.LogPath;
         chkEnableTrayCountdown.Checked = _config.EnableTrayCountdown;
         chkAutoStart.Checked = AutoStartManager.IsAutoStartEnabled();
         UpdateAutoStartStatus();
@@ -55,6 +56,7 @@ public partial class SettingsForm : Form
     {
         _config.WorkDurationMinutes = (int)numWorkMinutes.Value;
         _config.ShutdownCountdownMinutes = (int)numShutdownCountdown.Value;
+        _config.LogPath = txtLogPath.Text.Trim();
         _config.EnableTrayCountdown = chkEnableTrayCountdown.Checked;
 
         var delayText = panelDelay.Visible ? txtDelayOptionsPage.Text : txtDelayOptions.Text;
@@ -94,10 +96,25 @@ public partial class SettingsForm : Form
             _config.WorkDurationMinutes = defaults.WorkDurationMinutes;
             _config.ShutdownCountdownMinutes = defaults.ShutdownCountdownMinutes;
             _config.DelayOptions = defaults.DelayOptions;
+            _config.LogPath = defaults.LogPath;
             _config.EnableTrayCountdown = defaults.EnableTrayCountdown;
             LoadValues();
             AutoStartManager.SetAutoStart(false);
             UpdateAutoStartStatus();
+        }
+    }
+
+    private void BtnBrowse_Click(object? sender, EventArgs e)
+    {
+        using var dialog = new SaveFileDialog
+        {
+            Title = "选择开机时间记录文件",
+            Filter = "日志文件 (*.log)|*.log|所有文件 (*.*)|*.*",
+            FileName = Path.GetFileName(_config.LogPath)
+        };
+        if (dialog.ShowDialog() == DialogResult.OK)
+        {
+            txtLogPath.Text = dialog.FileName;
         }
     }
 

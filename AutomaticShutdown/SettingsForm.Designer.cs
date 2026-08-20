@@ -36,6 +36,9 @@ partial class SettingsForm
         txtDelayOptions = new TextBox();
         lblDelayHint = new Label();
         chkEnableTrayCountdown = new CheckBox();
+        lblLogPath = new Label();
+        txtLogPath = new TextBox();
+        btnBrowse = new Button();
 
         panelDelay = new Panel();
         lblDelayTitle = new Label();
@@ -180,6 +183,23 @@ partial class SettingsForm
         chkEnableTrayCountdown.AutoSize = true;
         chkEnableTrayCountdown.Font = new Font("Microsoft YaHei UI", 10F);
 
+        lblLogPath.Text = "开机时间记录文件：";
+        lblLogPath.Location = new Point(0, 185);
+        lblLogPath.AutoSize = true;
+        lblLogPath.Font = new Font("Microsoft YaHei UI", 10F);
+
+        txtLogPath.Location = new Point(160, 182);
+        txtLogPath.Size = new Size(180, 27);
+        txtLogPath.Font = new Font("Microsoft YaHei UI", 9.5F);
+
+        btnBrowse.Text = "浏览...";
+        btnBrowse.Location = new Point(348, 181);
+        btnBrowse.Size = new Size(65, 29);
+        btnBrowse.FlatStyle = FlatStyle.Flat;
+        btnBrowse.Font = new Font("Microsoft YaHei UI", 8.5F);
+        btnBrowse.Cursor = Cursors.Hand;
+        btnBrowse.Click += BtnBrowse_Click;
+
         panelGeneral.Controls.Add(lblWorkMinutes);
         panelGeneral.Controls.Add(numWorkMinutes);
         panelGeneral.Controls.Add(lblWorkMinutesHint);
@@ -190,6 +210,9 @@ partial class SettingsForm
         panelGeneral.Controls.Add(txtDelayOptions);
         panelGeneral.Controls.Add(lblDelayHint);
         panelGeneral.Controls.Add(chkEnableTrayCountdown);
+        panelGeneral.Controls.Add(lblLogPath);
+        panelGeneral.Controls.Add(txtLogPath);
+        panelGeneral.Controls.Add(btnBrowse);
 
         // === panelDelay ===
         panelDelay.Dock = DockStyle.Fill;
@@ -350,6 +373,9 @@ partial class SettingsForm
     private TextBox txtDelayOptions;
     private Label lblDelayHint;
     private CheckBox chkEnableTrayCountdown;
+    private Label lblLogPath;
+    private TextBox txtLogPath;
+    private Button btnBrowse;
     private Panel panelDelay;
     private Label lblDelayTitle;
     private Label lblDelayDesc;

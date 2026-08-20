@@ -16,7 +16,7 @@ public static class StartTimeRecorder
             try
             {
                 var content = File.ReadAllText(fullPath).Trim();
-                var recordedTime = DateTime.Parse(content);
+                var recordedTime = ParseLogFile(content);
                 if (recordedTime.Date == DateTime.Today)
                 {
                     return recordedTime;
@@ -30,7 +30,7 @@ public static class StartTimeRecorder
         var now = DateTime.Now;
         try
         {
-            File.WriteAllText(fullPath, now.ToString("yyyy-MM-dd HH:mm:ss"));
+            WriteLogFile(fullPath, now);
         }
         catch
         {
@@ -44,10 +44,40 @@ public static class StartTimeRecorder
         try
         {
             var fullPath = Path.GetFullPath(logPath);
-            File.WriteAllText(fullPath, startTime.ToString("yyyy-MM-dd HH:mm:ss"));
+            WriteLogFile(fullPath, startTime);
         }
         catch
         {
         }
+    }
+
+    private static DateTime ParseLogFile(string content)
+    {
+        var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        string? dateStr = null;
+        string? timeStr = null;
+
+        foreach (var line in lines)
+        {
+            var trimmed = line.Trim();
+            if (trimmed.StartsWith("Date=", StringComparison.OrdinalIgnoreCase))
+                dateStr = trimmed[5..];
+            else if (trimmed.StartsWith("StartTime=", StringComparison.OrdinalIgnoreCase))
+                timeStr = trimmed[10..];
+        }
+
+        if (!string.IsNullOrEmpty(timeStr))
+            return DateTime.Parse(timeStr);
+
+        if (!string.IsNullOrEmpty(dateStr))
+            return DateTime.Parse(dateStr);
+
+        return DateTime.Parse(content);
+    }
+
+    private static void WriteLogFile(string filePath, DateTime time)
+    {
+        var content = $"Date={time:yyyy-MM-dd}\nStartTime={time:yyyy-MM-dd HH:mm:ss}";
+        File.WriteAllText(filePath, content);
     }
 }
