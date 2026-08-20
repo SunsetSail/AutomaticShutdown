@@ -144,11 +144,11 @@ partial class MainForm
 
         // flowDelayButtons
         flowDelayButtons.Dock = DockStyle.Top;
-        flowDelayButtons.Height = 78;
+        flowDelayButtons.Height = 48;
         flowDelayButtons.FlowDirection = FlowDirection.LeftToRight;
         flowDelayButtons.Padding = new Padding(15, 8, 15, 8);
         flowDelayButtons.AutoSize = false;
-        flowDelayButtons.WrapContents = true;
+        flowDelayButtons.WrapContents = false;
 
         // panelStatus
         panelStatus.Dock = DockStyle.Bottom;
@@ -223,7 +223,7 @@ partial class MainForm
         // MainForm
         AutoScaleDimensions = new SizeF(7F, 17F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(420, 420);
+        ClientSize = new Size(420, 370);
         Controls.Add(panelStatus);
         Controls.Add(flowDelayButtons);
         Controls.Add(grpShutdown);

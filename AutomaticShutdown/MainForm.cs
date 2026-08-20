@@ -39,9 +39,9 @@ public partial class MainForm : Form
             var btn = new Button
             {
                 Text = $"延后{minutes}分钟",
-                Size = new Size(85, 32),
+                Size = new Size(72, 30),
                 FlatStyle = FlatStyle.Flat,
-                Font = new Font("Microsoft YaHei UI", 9F),
+                Font = new Font("Microsoft YaHei UI", 8.5F),
                 Tag = minutes
             };
             btn.Click += DelayButton_Click;
@@ -52,9 +52,9 @@ public partial class MainForm : Form
         var btnCancel = new Button
         {
             Text = "取消关机",
-            Size = new Size(85, 32),
+            Size = new Size(72, 30),
             FlatStyle = FlatStyle.Flat,
-            Font = new Font("Microsoft YaHei UI", 9F),
+            Font = new Font("Microsoft YaHei UI", 8.5F),
             ForeColor = Color.Red
         };
         btnCancel.Click += BtnCancelShutdown_Click;
