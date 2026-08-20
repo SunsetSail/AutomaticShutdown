@@ -222,11 +222,17 @@ public partial class MainForm : Form
     {
         _shutdownDeadline = DateTime.Now.AddMinutes(minutes);
         _isShutdownCountdownActive = true;
+        grpNormal.Visible = false;
+        grpShutdown.Visible = true;
+        UpdateStatus("关机倒计时中");
     }
 
     private void CancelShutdownCountdown()
     {
         _isShutdownCountdownActive = false;
+        _startTime = DateTime.Now;
+        StartTimeRecorder.SaveStartTime(_config.LogPath, _startTime);
+        lblStartTime.Text = $"首次开机时间：{_startTime:yyyy-MM-dd HH:mm:ss}";
         CancelScheduledShutdown();
         grpShutdown.Visible = false;
         grpNormal.Visible = true;
