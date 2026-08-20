@@ -20,9 +20,12 @@ public partial class MainForm : Form
         _config = AppConfig.Load();
         _startTime = StartTimeRecorder.RecordOrGetStartTime(_config.LogPath);
 
-        dtpStartTime.Value = _startTime;
-        UpdateTrayTooltip("准备中...");
+        lblStartTime.Text = $"首次开机时间：{_startTime:yyyy-MM-dd HH:mm:ss}";
+        UpdateAutoStartMenu();
+        UpdateShowCountdownMenu();
         CreateDelayButtons();
+        UpdateTrayTooltip("准备中...");
+        UpdateStatus("正常工作中");
         mainTimer.Start();
     }
 
@@ -35,8 +38,8 @@ public partial class MainForm : Form
         {
             var btn = new Button
             {
-                Text = $"延后 {minutes} 分钟",
-                Size = new Size(100, 35),
+                Text = $"延后{minutes}分钟",
+                Size = new Size(85, 32),
                 FlatStyle = FlatStyle.Flat,
                 Font = new Font("Microsoft YaHei UI", 9F),
                 Tag = minutes
@@ -59,15 +62,17 @@ public partial class MainForm : Form
             {
                 _isShutdownCountdownActive = true;
                 _shutdownDeadline = now.AddMinutes(_config.ShutdownCountdownMinutes);
+                grpNormal.Visible = false;
+                grpShutdown.Visible = true;
+                UpdateStatus("关机倒计时中");
                 ShowShutdownReminder();
             }
             else
             {
                 var remaining = workDuration - elapsed;
-                lblCountdown.Text = $"距离下班还有 {remaining:hh\\:mm\\:ss}";
-                lblCountdown.ForeColor = SystemColors.ControlText;
+                lblCountdownTime.Text = remaining.ToString(@"hh\:mm\:ss");
                 UpdateTrayTooltip($"下班倒计时：{remaining:hh\\:mm\\:ss}");
-                Text = _config.EnableTrayCountdown ? $"下班倒计时 {remaining:hh\\:mm\\:ss}" : "下班倒计时";
+                UpdateStatusBarTitle(remaining, false);
             }
         }
         else
@@ -79,12 +84,24 @@ public partial class MainForm : Form
                 return;
             }
 
-            lblCountdown.Text = $"电脑将在 {remaining:mm\\:ss} 后自动关机";
-            lblCountdown.ForeColor = Color.Red;
+            lblShutdownTime.Text = remaining.ToString(@"mm\:ss");
             UpdateTrayTooltip($"⚠ 关机倒计时：{remaining:mm\\:ss}");
-            Text = _config.EnableTrayCountdown
-                ? $"⚠ 关机倒计时 {remaining:mm\\:ss}"
-                : "下班倒计时";
+            UpdateStatusBarTitle(remaining, true);
+        }
+    }
+
+    private void UpdateStatusBarTitle(TimeSpan remaining, bool isShutdown)
+    {
+        if (_config.EnableTrayCountdown)
+        {
+            if (isShutdown)
+                Text = $"⚠ 电脑将在 {remaining:mm\\:ss} 后自动关机";
+            else
+                Text = $"下班倒计时 - 距离下班还有 {remaining:hh\\:mm\\:ss}";
+        }
+        else
+        {
+            Text = "下班倒计时";
         }
     }
 
@@ -94,10 +111,10 @@ public partial class MainForm : Form
         var hours = workMinutes / 60;
         var workMin = workMinutes % 60;
 
-        var dialog = new Form
+        using var dialog = new Form
         {
             Text = "下班提醒",
-            Size = new Size(420, 200),
+            Size = new Size(400, 310),
             StartPosition = FormStartPosition.CenterScreen,
             FormBorderStyle = FormBorderStyle.FixedDialog,
             MaximizeBox = false,
@@ -106,29 +123,48 @@ public partial class MainForm : Form
             TopMost = true
         };
 
+        var lblIcon = new Label
+        {
+            Text = "🔔",
+            Font = new Font("Segoe UI Emoji", 36F),
+            Dock = DockStyle.Top,
+            Height = 65,
+            TextAlign = ContentAlignment.MiddleCenter
+        };
+
+        var lblTitle = new Label
+        {
+            Text = "下班提醒",
+            Font = new Font("Microsoft YaHei UI", 14F, FontStyle.Bold),
+            Dock = DockStyle.Top,
+            Height = 35,
+            TextAlign = ContentAlignment.MiddleCenter
+        };
+
         var lblMessage = new Label
         {
-            Text = $"您已工作满 {hours} 小时 {workMin} 分钟，电脑将在 {_config.ShutdownCountdownMinutes} 分钟后自动关机。",
+            Text = $"您已工作满 {hours} 小时 {workMin} 分钟，\n电脑将在 {_config.ShutdownCountdownMinutes} 分钟后自动关机。\n\n您可以选择延后关机时间：",
+            Font = new Font("Microsoft YaHei UI", 10F),
             Dock = DockStyle.Top,
-            Height = 80,
-            TextAlign = ContentAlignment.MiddleCenter,
-            Font = new Font("Microsoft YaHei UI", 10F)
+            Height = 100,
+            TextAlign = ContentAlignment.TopCenter
         };
 
         var flowPanel = new FlowLayoutPanel
         {
             Dock = DockStyle.Bottom,
-            Height = 60,
+            Height = 75,
             FlowDirection = FlowDirection.LeftToRight,
-            Padding = new Padding(10)
+            Padding = new Padding(20, 10, 20, 10),
+            WrapContents = true
         };
 
         foreach (var minutes in _config.DelayOptions)
         {
             var btn = new Button
             {
-                Text = $"延后 {minutes} 分钟",
-                Size = new Size(90, 35),
+                Text = $"延后{minutes}分钟",
+                Size = new Size(100, 35),
                 FlatStyle = FlatStyle.Flat,
                 Font = new Font("Microsoft YaHei UI", 9F),
                 Tag = minutes
@@ -141,6 +177,8 @@ public partial class MainForm : Form
             flowPanel.Controls.Add(btn);
         }
 
+        dialog.Controls.Add(lblIcon);
+        dialog.Controls.Add(lblTitle);
         dialog.Controls.Add(lblMessage);
         dialog.Controls.Add(flowPanel);
         dialog.ShowDialog(this);
@@ -202,22 +240,25 @@ public partial class MainForm : Form
         trayIcon.Text = text;
     }
 
-    private void BtnMenuSettings_Click(object? sender, EventArgs e)
+    private void UpdateStatus(string status)
     {
-        using var settingsForm = new SettingsForm(_config);
-        if (settingsForm.ShowDialog(this) == DialogResult.OK)
-        {
-            _config = AppConfig.Load();
-            CreateDelayButtons();
-        }
+        lblStatus.Text = $"● 状态：{status}";
+        lblStatus.ForeColor = status.Contains("关机") ? Color.Red : Color.Green;
     }
 
-    private void BtnMenuExit_Click(object? sender, EventArgs e)
+    private void UpdateAutoStartMenu()
     {
-        CancelScheduledShutdown();
-        mainTimer.Stop();
-        trayIcon.Visible = false;
-        Application.Exit();
+        trayMenuAutoStart.Checked = AutoStartManager.IsAutoStartEnabled();
+    }
+
+    private void UpdateShowCountdownMenu()
+    {
+        trayMenuShowCountdown.Checked = _config.EnableTrayCountdown;
+    }
+
+    private void BtnSettings_Click(object? sender, EventArgs e)
+    {
+        OpenSettings();
     }
 
     private void TrayIcon_DoubleClick(object? sender, EventArgs e)
@@ -230,12 +271,45 @@ public partial class MainForm : Form
         ShowMainForm();
     }
 
+    private void TrayMenuSettings_Click(object? sender, EventArgs e)
+    {
+        OpenSettings();
+    }
+
+    private void TrayMenuAutoStart_Click(object? sender, EventArgs e)
+    {
+        var current = AutoStartManager.IsAutoStartEnabled();
+        AutoStartManager.SetAutoStart(!current);
+        UpdateAutoStartMenu();
+    }
+
+    private void TrayMenuShowCountdown_Click(object? sender, EventArgs e)
+    {
+        _config.EnableTrayCountdown = !_config.EnableTrayCountdown;
+        _config.Save();
+        UpdateShowCountdownMenu();
+        UpdateStatusBarTitle(TimeSpan.Zero, false);
+    }
+
     private void TrayMenuExit_Click(object? sender, EventArgs e)
     {
         CancelScheduledShutdown();
         mainTimer.Stop();
         trayIcon.Visible = false;
         Application.Exit();
+    }
+
+    private void OpenSettings()
+    {
+        using var settingsForm = new SettingsForm(_config);
+        if (settingsForm.ShowDialog(this) == DialogResult.OK)
+        {
+            _config = AppConfig.Load();
+            CreateDelayButtons();
+            UpdateAutoStartMenu();
+            UpdateShowCountdownMenu();
+            UpdateStatus("正常工作中");
+        }
     }
 
     private void ShowMainForm()
@@ -259,12 +333,5 @@ public partial class MainForm : Form
         CancelScheduledShutdown();
         mainTimer.Stop();
         trayIcon.Visible = false;
-    }
-
-    private void DtpStartTime_ValueChanged(object? sender, EventArgs e)
-    {
-        _startTime = dtpStartTime.Value;
-        _isShutdownCountdownActive = false;
-        StartTimeRecorder.SaveStartTime(_config.LogPath, _startTime);
     }
 }
