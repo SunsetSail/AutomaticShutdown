@@ -17,15 +17,14 @@ public partial class SettingsForm : Form
         numWorkMinutes.Value = _config.WorkDurationMinutes % 60;
         numShutdownCountdown.Value = _config.ShutdownCountdownMinutes;
         txtDelayOptions.Text = string.Join(", ", _config.DelayOptions);
-        txtLogPath.Text = _config.LogPath;
         chkEnableTrayCountdown.Checked = _config.EnableTrayCountdown;
+        chkAutoStart.Checked = AutoStartManager.IsAutoStartEnabled();
     }
 
     private void btnSave_Click(object? sender, EventArgs e)
     {
         _config.WorkDurationMinutes = (int)(numWorkHours.Value * 60 + numWorkMinutes.Value);
         _config.ShutdownCountdownMinutes = (int)numShutdownCountdown.Value;
-        _config.LogPath = txtLogPath.Text.Trim();
         _config.EnableTrayCountdown = chkEnableTrayCountdown.Checked;
 
         try
@@ -43,6 +42,7 @@ public partial class SettingsForm : Form
         }
 
         _config.Save();
+        AutoStartManager.SetAutoStart(chkAutoStart.Checked);
         DialogResult = DialogResult.OK;
         Close();
     }

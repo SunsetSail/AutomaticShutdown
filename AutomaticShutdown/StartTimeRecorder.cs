@@ -38,4 +38,16 @@ public static class StartTimeRecorder
 
         return now;
     }
+
+    public static void SaveStartTime(string logPath, DateTime startTime)
+    {
+        try
+        {
+            var fullPath = Path.GetFullPath(logPath);
+            File.WriteAllText(fullPath, startTime.ToString("yyyy-MM-dd HH:mm:ss"));
+        }
+        catch
+        {
+        }
+    }
 }
