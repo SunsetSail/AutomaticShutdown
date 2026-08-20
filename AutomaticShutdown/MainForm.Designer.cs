@@ -212,6 +212,7 @@ partial class MainForm
         trayIcon.Text = "下班倒计时";
         trayIcon.ContextMenuStrip = trayContextMenu;
         trayIcon.DoubleClick += TrayIcon_DoubleClick;
+        trayIcon.Icon = CreateTrayIcon();
         trayIcon.Visible = true;
 
         // mainTimer
@@ -236,6 +237,19 @@ partial class MainForm
         Load += MainForm_Load;
 
         ResumeLayout(false);
+    }
+
+    private static Icon CreateTrayIcon()
+    {
+        var bmp = new Bitmap(16, 16);
+        using var g = Graphics.FromImage(bmp);
+        g.Clear(Color.Transparent);
+        using var brush = new SolidBrush(Color.FromArgb(0, 120, 215));
+        g.FillEllipse(brush, 1, 1, 14, 14);
+        using var font = new Font("Consolas", 9F, FontStyle.Bold);
+        using var white = new SolidBrush(Color.White);
+        g.DrawString("⏰", font, white, -1, -1);
+        return Icon.FromHandle(bmp.GetHicon());
     }
 
     #endregion

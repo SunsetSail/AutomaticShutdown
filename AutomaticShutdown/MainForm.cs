@@ -48,6 +48,17 @@ public partial class MainForm : Form
             _delayButtons.Add(btn);
             flowDelayButtons.Controls.Add(btn);
         }
+
+        var btnCancel = new Button
+        {
+            Text = "取消关机",
+            Size = new Size(85, 32),
+            FlatStyle = FlatStyle.Flat,
+            Font = new Font("Microsoft YaHei UI", 9F),
+            ForeColor = Color.Red
+        };
+        btnCancel.Click += BtnCancelShutdown_Click;
+        flowDelayButtons.Controls.Add(btnCancel);
     }
 
     private void MainTimer_Tick(object? sender, EventArgs e)
@@ -177,6 +188,21 @@ public partial class MainForm : Form
             flowPanel.Controls.Add(btn);
         }
 
+        var btnCancel = new Button
+        {
+            Text = "取消关机",
+            Size = new Size(100, 35),
+            FlatStyle = FlatStyle.Flat,
+            Font = new Font("Microsoft YaHei UI", 9F),
+            ForeColor = Color.Red
+        };
+        btnCancel.Click += (_, _) =>
+        {
+            CancelShutdownCountdown();
+            dialog.Close();
+        };
+        flowPanel.Controls.Add(btnCancel);
+
         dialog.Controls.Add(lblIcon);
         dialog.Controls.Add(lblTitle);
         dialog.Controls.Add(lblMessage);
@@ -196,6 +222,20 @@ public partial class MainForm : Form
     {
         _shutdownDeadline = DateTime.Now.AddMinutes(minutes);
         _isShutdownCountdownActive = true;
+    }
+
+    private void CancelShutdownCountdown()
+    {
+        _isShutdownCountdownActive = false;
+        CancelScheduledShutdown();
+        grpShutdown.Visible = false;
+        grpNormal.Visible = true;
+        UpdateStatus("正常工作中");
+    }
+
+    private void BtnCancelShutdown_Click(object? sender, EventArgs e)
+    {
+        CancelShutdownCountdown();
     }
 
     private void ExecuteShutdown()
