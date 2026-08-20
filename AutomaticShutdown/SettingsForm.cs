@@ -15,6 +15,7 @@ public partial class SettingsForm : Form
     private void LoadValues()
     {
         numWorkMinutes.Value = _config.WorkDurationMinutes;
+        UpdateWorkMinutesHint();
         numShutdownCountdown.Value = _config.ShutdownCountdownMinutes;
         txtDelayOptions.Text = string.Join(",", _config.DelayOptions);
         txtDelayOptionsPage.Text = string.Join(",", _config.DelayOptions);
@@ -121,6 +122,19 @@ public partial class SettingsForm : Form
     private void ChkAutoStart_CheckedChanged(object? sender, EventArgs e)
     {
         UpdateAutoStartStatus();
+    }
+
+    private void NumWorkMinutes_ValueChanged(object? sender, EventArgs e)
+    {
+        UpdateWorkMinutesHint();
+    }
+
+    private void UpdateWorkMinutesHint()
+    {
+        var minutes = (int)numWorkMinutes.Value;
+        var hours = minutes / 60;
+        var remain = minutes % 60;
+        lblWorkMinutesHint.Text = remain == 0 ? $"({hours}小时)" : $"({hours}小时{remain}分钟)";
     }
 
     private void UpdateAutoStartStatus()

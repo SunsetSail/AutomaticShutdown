@@ -139,6 +139,7 @@ partial class SettingsForm
         numWorkMinutes.Minimum = 1;
         numWorkMinutes.Maximum = 1440;
         numWorkMinutes.Font = new Font("Microsoft YaHei UI", 10F);
+        numWorkMinutes.ValueChanged += NumWorkMinutes_ValueChanged;
 
         lblWorkMinutesHint.Text = "(9小时30分钟)";
         lblWorkMinutesHint.Location = new Point(248, 12);
